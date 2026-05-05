@@ -1,15 +1,15 @@
 ## 1. M1 — 專案基礎建設
 
-- [ ] 1.1 初始化 Python 專案結構（`pyproject.toml`、`src/` layout、`.env.example`）
-- [ ] 1.2 撰寫 `docker-compose.yml`，啟動 PostgreSQL 和 Redis
-- [ ] 1.3 安裝核心依賴（`fastapi`, `uvicorn`, `langgraph`, `langchain-ollama`, `redis`, `asyncpg`, `structlog`）
-- [ ] 1.4 建立 PostgreSQL `messages` 表 migration（`id`, `thread_id`, `role`, `content`, `created_at`）
-- [ ] 1.5 驗證三個依賴連線正常：Redis ping、PostgreSQL SELECT 1、Ollama `/api/tags`
+- [x] 1.1 初始化 Python 專案結構（`pyproject.toml`、`src/` layout、`.env.example`）
+- [x] 1.2 撰寫 `docker-compose.yml`，啟動 PostgreSQL 和 Redis
+- [x] 1.3 安裝核心依賴（`fastapi`, `uvicorn`, `langgraph`, `langchain-ollama`, `redis`, `asyncpg`, `structlog`）
+- [x] 1.4 建立 PostgreSQL `messages` 表 migration（`id`, `thread_id`, `role`, `content`, `created_at`）
+- [x] 1.5 驗證三個依賴連線正常：Redis ping、PostgreSQL SELECT 1、Ollama `/api/tags`
 
 ## 2. M1 — Observability 基礎
 
-- [ ] 2.1 設定 structlog，輸出 JSON 格式，預設帶 `timestamp` 和 `level`
-- [ ] 2.2 實作 `GET /health`，檢查 Redis、PostgreSQL、Ollama，回傳 200 或 503
+- [x] 2.1 設定 structlog，輸出 JSON 格式，預設帶 `timestamp` 和 `level`
+- [x] 2.2 實作 `GET /health`，檢查 Redis、PostgreSQL、Ollama，回傳 200 或 503
 
 ## 3. M1 — LLM Integration
 

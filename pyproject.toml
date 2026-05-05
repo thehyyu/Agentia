@@ -1,0 +1,46 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "agentia"
+version = "0.1.0"
+description = "Blog-native conversational AI platform powered by LangGraph"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "langgraph>=0.2",
+    "langchain-ollama>=0.2",
+    "langchain-core>=0.3",
+    "redis>=5.2",
+    "asyncpg>=0.30",
+    "psycopg[binary,pool]>=3.2",
+    "structlog>=24.4",
+    "pydantic>=2.9",
+    "python-dotenv>=1.0",
+    "httpx>=0.28",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-httpx>=0.34",
+]
+m2 = [
+    "langgraph-checkpoint-postgres>=2.0",
+]
+m4 = [
+    "pypdf>=5.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/agentia"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
