@@ -42,14 +42,14 @@
 - [x] 7.1 建立 `index.html`，原生 WebSocket 連線，無任何 framework 依賴
 - [x] 7.2 實作 token-by-token 渲染（收到 frame 立即 append 至 DOM）
 - [x] 7.3 連線時呼叫 `/api/conversations/{thread_id}` 載入歷史訊息
-- [ ] 7.4 完成標準：傳第二句話時模型記得第一句；重新整理後歷史訊息仍存在
+- [x] 7.4 完成標準：傳第二句話時模型記得第一句；重新整理後歷史訊息仍存在
 
 ## 8. M2 — LangGraph Checkpointer
 
-- [ ] 8.1 安裝 `langgraph-checkpoint-postgres`
-- [ ] 8.2 將 `AsyncPostgresSaver` 設為 graph checkpointer，以 `thread_id` 為 checkpoint key
-- [ ] 8.3 移除 M1 手寫 Redis 記憶層（保留 git history 作為對比）
-- [ ] 8.4 驗證：WebSocket 斷線重連後，對話從中斷點繼續
+- [x] 8.1 安裝 `langgraph-checkpoint-postgres`
+- [x] 8.2 將 `AsyncPostgresSaver` 設為 graph checkpointer，以 `thread_id` 為 checkpoint key
+- [x] 8.3 移除 M1 手寫 Redis 記憶層（保留 git history 作為對比）
+- [x] 8.4 驗證：WebSocket 斷線重連後，對話從中斷點繼續
 
 ## 9. M2 — LLM 抽象層
 
