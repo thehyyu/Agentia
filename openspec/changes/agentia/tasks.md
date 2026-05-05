@@ -25,23 +25,23 @@
 
 ## 5. M1 — Conversation Engine（單節點）
 
-- [ ] 5.1 定義 `AgentState` TypedDict（M1 版：`messages`, `thread_id`）
-- [ ] 5.2 建立單節點 `StateGraph`：從 Redis 讀 context → 呼叫 Ollama → 回傳 token stream
-- [ ] 5.3 為每個 graph node 加入 structlog `node.enter` / `node.exit` log
+- [x] 5.1 定義 `AgentState` TypedDict（M1 版：`messages`, `thread_id`）
+- [x] 5.2 建立單節點 `StateGraph`：從 Redis 讀 context → 呼叫 Ollama → 回傳 token stream
+- [x] 5.3 為每個 graph node 加入 structlog `node.enter` / `node.exit` log
 
 ## 6. M1 — Chat API
 
-- [ ] 6.1 實作 `WS /ws/chat?thread_id=` WebSocket endpoint
-- [ ] 6.2 無 `thread_id` 時自動產生 UUID，送 `{type: "session_init", thread_id}` 給 client
-- [ ] 6.3 串接 `astream_events`，過濾 `on_chat_model_stream`，逐 token 送 WebSocket frame
-- [ ] 6.4 graph 完成後送 `{type: "turn_end"}` 信號
-- [ ] 6.5 實作 `GET /api/conversations/{thread_id}`，從 PostgreSQL 回傳歷史訊息
+- [x] 6.1 實作 `WS /ws/chat?thread_id=` WebSocket endpoint
+- [x] 6.2 無 `thread_id` 時自動產生 UUID，送 `{type: "session_init", thread_id}` 給 client
+- [x] 6.3 串接 `astream_events`，過濾 `on_chat_model_stream`，逐 token 送 WebSocket frame
+- [x] 6.4 graph 完成後送 `{type: "turn_end"}` 信號
+- [x] 6.5 實作 `GET /api/conversations/{thread_id}`，從 PostgreSQL 回傳歷史訊息
 
 ## 7. M1 — Chat UI（純 HTML）
 
-- [ ] 7.1 建立 `index.html`，原生 WebSocket 連線，無任何 framework 依賴
-- [ ] 7.2 實作 token-by-token 渲染（收到 frame 立即 append 至 DOM）
-- [ ] 7.3 連線時呼叫 `/api/conversations/{thread_id}` 載入歷史訊息
+- [x] 7.1 建立 `index.html`，原生 WebSocket 連線，無任何 framework 依賴
+- [x] 7.2 實作 token-by-token 渲染（收到 frame 立即 append 至 DOM）
+- [x] 7.3 連線時呼叫 `/api/conversations/{thread_id}` 載入歷史訊息
 - [ ] 7.4 完成標準：傳第二句話時模型記得第一句；重新整理後歷史訊息仍存在
 
 ## 8. M2 — LangGraph Checkpointer

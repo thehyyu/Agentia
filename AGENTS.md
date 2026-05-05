@@ -66,6 +66,7 @@ Implementation tasks: `openspec/changes/agentia/tasks.md`
 
 ## Conventions
 
+- **Language**: 所有輸出（包含 Agent 回覆與開發溝通）必須限定為 **繁體中文**。
 - **Logging**: every log entry via `structlog`, JSON output, always include `thread_id` and `node` within a request
 - **Node structure**: each node function takes `AgentState` and returns `AgentState` (partial update)
 - **Tools**: decorated with `@tool`, registered at graph compile time — never hardcoded inside nodes
