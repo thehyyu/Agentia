@@ -20,8 +20,8 @@
 
 - [x] 4.1 實作 Redis context 讀取：`LRANGE session:{thread_id} 0 9`，反序列化為 messages list
 - [x] 4.2 實作 Redis context 寫入：`RPUSH` user + assistant，重設 TTL 3600s
-- [ ] 4.3 實作 PostgreSQL message insert（每 turn 寫入兩筆：user、assistant）
-- [ ] 4.4 觀察 Context Saturation：對話超過 10 輪後確認 WARN log 出現（`event=context.truncated`）
+- [x] 4.3 實作 PostgreSQL message insert（每 turn 寫入兩筆：user、assistant）
+- [x] 4.4 觀察 Context Saturation：對話超過 10 輪後確認 WARN log 出現（`event=context.truncated`）
 
 ## 5. M1 — Conversation Engine（單節點）
 
