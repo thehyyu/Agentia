@@ -12,6 +12,8 @@ DATABASE_URL: str = os.environ.get(
     "DATABASE_URL",
     "postgresql+asyncpg://agentia:agentia@localhost:5432/agentia",
 )
+# psycopg (used by langgraph checkpointer) doesn't use the +asyncpg prefix
+PSYCOPG_DATABASE_URL: str = DATABASE_URL.replace("+asyncpg", "")
 
 LANGFUSE_PUBLIC_KEY: str = os.environ.get("LANGFUSE_PUBLIC_KEY", "")
 LANGFUSE_SECRET_KEY: str = os.environ.get("LANGFUSE_SECRET_KEY", "")
