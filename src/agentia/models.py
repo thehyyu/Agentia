@@ -9,3 +9,5 @@ class AgentState(TypedDict):
     thread_id: str
     intent: NotRequired[str]
     intent_confidence: NotRequired[float]
+    tool_results: NotRequired[list]
+    iteration_count: NotRequired[int]

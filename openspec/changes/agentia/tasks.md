@@ -67,10 +67,10 @@
 
 ## 11. M2 — Conversation Engine（完整 Graph）
 
-- [ ] 11.1 擴充 `AgentState`（加入 `intent`, `tool_results`, `iteration_count`）
-- [ ] 11.2 重建 graph：`START → load_context → router → agent ⇄ tools → save_context → END`
-- [ ] 11.3 實作 ReAct conditional edge：有 tool call → tools；無 tool call → save_context
-- [ ] 11.4 實作最大迭代上限（10 次），超過時附加截斷通知並跳出循環
+- [x] 11.1 擴充 `AgentState`（加入 `intent`, `tool_results`, `iteration_count`）
+- [x] 11.2 重建 graph：`START → load_context → router → agent ⇄ tools → save_context → END`
+- [x] 11.3 實作 ReAct conditional edge：有 tool call → tools；無 tool call → save_context
+- [x] 11.4 實作最大迭代上限（10 次），超過時附加截斷通知並跳出循環
 
 ## 12. M2 — Tool System
 
