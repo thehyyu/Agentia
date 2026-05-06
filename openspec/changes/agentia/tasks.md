@@ -88,10 +88,10 @@
 
 ## 14. M3 — Human-in-the-loop
 
-- [ ] 14.1 在 tools node 執行前加入 `interrupt({"tool": name, "args": args})`
-- [ ] 14.2 FastAPI 捕捉 interrupt，送 `{type: "confirmation_request", tool, args}` 至 WebSocket
-- [ ] 14.3 接收 `{type: "confirmation_response", approved: true/false}` 後呼叫 graph resume
-- [ ] 14.4 實作 60 秒 timeout：逾時則跳過 tool，agent 收到 timeout ToolMessage
+- [x] 14.1 在 tools node 執行前加入 `interrupt({"tool": name, "args": args})`
+- [x] 14.2 FastAPI 捕捉 interrupt，送 `{type: "confirmation_request", tool, args}` 至 WebSocket
+- [x] 14.3 接收 `{type: "confirmation_response", approved: true/false}` 後呼叫 graph resume
+- [x] 14.4 實作 60 秒 timeout：逾時則跳過 tool，agent 收到 timeout ToolMessage
 
 ## 15. M3 — FastAPI Dependency Injection
 
