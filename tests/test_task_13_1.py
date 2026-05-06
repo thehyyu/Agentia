@@ -2,10 +2,15 @@ from unittest.mock import MagicMock
 from agentia.events import process_graph_event
 
 
-def _stream_event(content: str) -> dict:
+def _stream_event(content: str, node: str = "agent") -> dict:
     chunk = MagicMock()
     chunk.content = content
-    return {"event": "on_chat_model_stream", "data": {"chunk": chunk}, "name": "ChatOllama"}
+    return {
+        "event": "on_chat_model_stream",
+        "data": {"chunk": chunk},
+        "name": "ChatOllama",
+        "metadata": {"langgraph_node": node},
+    }
 
 
 def _tool_end_event(tool_name: str, output: str) -> dict:
@@ -23,6 +28,11 @@ def test_on_chat_model_stream_returns_token_message():
 
 def test_empty_token_returns_none():
     result = process_graph_event(_stream_event(""))
+    assert result is None
+
+
+def test_router_node_stream_is_suppressed():
+    result = process_graph_event(_stream_event('{"intent": "chitchat"}', node="router"))
     assert result is None
 
 

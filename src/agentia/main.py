@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from psycopg_pool import AsyncConnectionPool
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
+from langgraph.types import Command
 
 from agentia.config import DATABASE_URL, PSYCOPG_DATABASE_URL
 from agentia.health import get_health
@@ -16,6 +17,7 @@ from agentia import graph as graph_module
 from agentia.tools import ALL_TOOLS
 from agentia.events import process_graph_event
 from agentia.observability import make_langfuse_handler
+from agentia.hitl import extract_pending_interrupt, parse_ws_message, wait_for_confirmation
 from langchain_core.messages import HumanMessage
 
 setup_logging()
@@ -81,46 +83,68 @@ async def chat_ws(websocket: WebSocket, thread_id: str = ""):
 
     logger = log.bind(thread_id=thread_id)
 
+    callbacks = [h for h in [make_langfuse_handler()] if h is not None]
+    config = {
+        "configurable": {"thread_id": thread_id},
+        "callbacks": callbacks,
+        "metadata": {
+            "langfuse_session_id": thread_id,
+            "langfuse_trace_name": "chat-response",
+        },
+    }
+
     try:
         while True:
-            user_text = await websocket.receive_text()
+            raw = await websocket.receive_text()
+            incoming = parse_ws_message(raw)
+
+            if incoming["type"] == "confirmation_response":
+                # Should not arrive here outside of the HITL flow; ignore silently.
+                continue
+
+            user_text = incoming.get("content", raw)
             logger.info("turn.start", user_text=user_text[:80])
 
-            # 在 M2 Checkpointer 模式下：
-            # 1. 我們不再手動載入 history。
-            # 2. 我們只需要發送當前的 HumanMessage。
-            # 3. LangGraph 會根據 thread_id 自動從 Postgres 載入先前的狀態。
-            
-            # 設定 Graph 執行參數（含 Langfuse callback，若環境變數已設定）
-            callbacks = [h for h in [make_langfuse_handler()] if h is not None]
-            config = {
-                "configurable": {"thread_id": thread_id},
-                "callbacks": callbacks,
-                "metadata": {
-                    "langfuse_session_id": thread_id,
-                    "langfuse_trace_name": "chat-response",
-                },
-            }
-            # 確保 thread_id 也在 state 中，以便節點記錄日誌
-            input_data = {
+            graph_input = {
                 "messages": [HumanMessage(content=user_text)],
-                "thread_id": thread_id
+                "thread_id": thread_id,
             }
 
             ai_chunks: list[str] = []
-            async for event in graph_module.graph.astream_events(
-                input_data,
-                config=config,
-                version="v2",
-            ):
-                msg = process_graph_event(event)
-                if msg is not None:
-                    if msg["type"] == "token":
-                        ai_chunks.append(msg["content"])
-                    await websocket.send_json(msg)
+
+            async def _stream(graph_in):
+                async for event in graph_module.graph.astream_events(
+                    graph_in, config=config, version="v2"
+                ):
+                    msg = process_graph_event(event)
+                    if msg is not None:
+                        if msg["type"] == "token":
+                            ai_chunks.append(msg["content"])
+                        await websocket.send_json(msg)
+
+            await _stream(graph_input)
+
+            # HITL: check for pending interrupt after each stream run
+            # (requires checkpointer — skipped in tests that run without lifespan)
+            while graph_module.graph.checkpointer is not None:
+                state = await graph_module.graph.aget_state(config)
+                interrupt_payload = extract_pending_interrupt(state)
+                if interrupt_payload is None:
+                    break
+
+                await websocket.send_json({
+                    "type": "confirmation_request",
+                    **interrupt_payload,
+                })
+                logger.info("hitl.interrupt", tool=interrupt_payload.get("tool"))
+
+                approved = await wait_for_confirmation(
+                    websocket.receive_text, timeout=60
+                )
+                logger.info("hitl.resume", approved=approved)
+                await _stream(Command(resume=approved))
 
             ai_text = "".join(ai_chunks)
-            # 我們仍然保留 persist_messages 用於供歷史紀錄 API (Task 6.5) 查詢
             await persist_messages(thread_id, user_text, ai_text, DATABASE_URL)
             await websocket.send_json({"type": "turn_end"})
             logger.info("turn.end")

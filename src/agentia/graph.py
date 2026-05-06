@@ -1,9 +1,10 @@
 import structlog
-from langchain_core.messages import AIMessage, SystemMessage
+from langchain_core.messages import AIMessage, SystemMessage, ToolMessage
 from langchain_core.tools import BaseTool
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.prebuilt import ToolNode
+from langgraph.types import interrupt
 
 from agentia.models import AgentState
 from agentia.llm import get_llm_provider
@@ -43,6 +44,37 @@ def save_context_node(state: AgentState) -> dict:
     return {}
 
 
+def confirm_tool_node(state: AgentState) -> dict:
+    last_msg = state["messages"][-1]
+    tool_calls = getattr(last_msg, "tool_calls", None) or []
+
+    if not tool_calls:
+        return {}
+
+    tc = tool_calls[0]
+    approved = interrupt({"tool": tc["name"], "args": tc.get("args", {})})
+
+    if approved is True:
+        return {}
+
+    content = (
+        "Tool call confirmation timeout."
+        if approved == "timeout"
+        else "Action cancelled by user."
+    )
+    return {
+        "messages": [
+            ToolMessage(content=content, tool_call_id=item["id"])
+            for item in tool_calls
+        ]
+    }
+
+
+def after_confirm_edge(state: AgentState) -> str:
+    last_msg = state["messages"][-1]
+    return "agent" if isinstance(last_msg, ToolMessage) else "tools"
+
+
 def react_edge(state: AgentState) -> str:
     if state.get("iteration_count", 0) >= MAX_ITERATIONS:
         return "save_context"
@@ -77,6 +109,7 @@ def build_graph(checkpointer: BaseCheckpointSaver = None, tools: list[BaseTool] 
     builder.add_node("load_context", load_context_node)
     builder.add_node("router", router_node)
     builder.add_node("agent", _make_agent(tools))
+    builder.add_node("confirm_tool", confirm_tool_node)
     builder.add_node("tools", ToolNode(tools, handle_tool_errors=True))
     builder.add_node("save_context", save_context_node)
     builder.add_node("clarify", clarify_node)
@@ -97,7 +130,12 @@ def build_graph(checkpointer: BaseCheckpointSaver = None, tools: list[BaseTool] 
     builder.add_conditional_edges(
         "agent",
         react_edge,
-        {"tools": "tools", "save_context": "save_context"},
+        {"tools": "confirm_tool", "save_context": "save_context"},
+    )
+    builder.add_conditional_edges(
+        "confirm_tool",
+        after_confirm_edge,
+        {"tools": "tools", "agent": "agent"},
     )
     builder.add_edge("tools", "agent")
     builder.add_edge("clarify", END)
