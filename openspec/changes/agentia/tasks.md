@@ -53,9 +53,9 @@
 
 ## 9. M2 — LLM 抽象層
 
-- [ ] 9.1 定義 `LLMProvider` Protocol（`invoke`、`astream` 方法）
-- [ ] 9.2 將 `ChatOllama` 包裝為 `OllamaProvider`
-- [ ] 9.3 以 `LLM_PROVIDER` 環境變數選擇 provider，預設 `ollama`
+- [x] 9.1 定義 `LLMProvider` Protocol（`invoke`、`astream` 方法）
+- [x] 9.2 將 `ChatOllama` 包裝為 `OllamaProvider`
+- [x] 9.3 以 `LLM_PROVIDER` 環境變數選擇 provider，預設 `ollama`
 
 ## 10. M2 — Intent Router
 
