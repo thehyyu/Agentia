@@ -9,6 +9,9 @@ def test_llm_provider_protocol_is_runtime_checkable():
         async def astream(self, messages):
             yield
 
+        def with_structured_output(self, schema):
+            ...
+
     assert isinstance(FakeProvider(), LLMProvider)
 
 

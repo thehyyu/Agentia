@@ -1,5 +1,5 @@
 import os
-from typing import AsyncIterator, Protocol, runtime_checkable
+from typing import Any, AsyncIterator, Protocol, runtime_checkable
 
 from langchain_ollama import ChatOllama
 from langchain_core.messages import BaseMessage
@@ -11,6 +11,7 @@ from agentia.config import LLM_BASE_URL, LLM_MODEL
 class LLMProvider(Protocol):
     def invoke(self, messages: list[BaseMessage]) -> BaseMessage: ...
     async def astream(self, messages: list[BaseMessage]) -> AsyncIterator[BaseMessage]: ...
+    def with_structured_output(self, schema: type) -> Any: ...
 
 
 class OllamaProvider:
@@ -24,6 +25,9 @@ class OllamaProvider:
     async def astream(self, messages: list[BaseMessage]) -> AsyncIterator[BaseMessage]:
         async for chunk in self._llm.astream(messages):
             yield chunk
+
+    def with_structured_output(self, schema: type) -> Any:
+        return self._llm.with_structured_output(schema)
 
 
 def get_llm_provider() -> LLMProvider:

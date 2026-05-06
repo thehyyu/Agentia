@@ -59,11 +59,11 @@
 
 ## 10. M2 — Intent Router
 
-- [ ] 10.1 定義 `IntentClassification` Pydantic model（`intent: str`, `confidence: float`）
-- [ ] 10.2 實作 router node：呼叫 LLM `with_structured_output(IntentClassification)`
-- [ ] 10.3 加入 conditional edge：confidence < 0.6 → clarify；否則按 intent 路由
-- [ ] 10.4 實作 clarify node：回覆請使用者重新描述需求
-- [ ] 10.5 將 intent 寫入 `AgentState.intent`
+- [x] 10.1 定義 `IntentClassification` Pydantic model（`intent: str`, `confidence: float`）
+- [x] 10.2 實作 router node：呼叫 LLM `with_structured_output(IntentClassification)`
+- [x] 10.3 加入 conditional edge：confidence < 0.6 → clarify；否則按 intent 路由
+- [x] 10.4 實作 clarify node：回覆請使用者重新描述需求
+- [x] 10.5 將 intent 寫入 `AgentState.intent`
 
 ## 11. M2 — Conversation Engine（完整 Graph）
 
