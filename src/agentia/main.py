@@ -13,6 +13,7 @@ from agentia.health import get_health
 from agentia.logging import setup_logging
 from agentia.memory import get_redis, load_context, save_context, persist_messages
 from agentia import graph as graph_module
+from agentia.tools import ALL_TOOLS
 from langchain_core.messages import HumanMessage
 
 setup_logging()
@@ -32,7 +33,7 @@ async def lifespan(app: FastAPI):
         await checkpointer.setup()
         
         # 注入具備持久化能力的 Graph
-        graph_module.graph = graph_module.build_graph(checkpointer=checkpointer)
+        graph_module.graph = graph_module.build_graph(checkpointer=checkpointer, tools=ALL_TOOLS)
         
         log.info("app.startup", checkpointer="AsyncPostgresSaver")
         yield

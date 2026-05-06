@@ -29,6 +29,9 @@ class OllamaProvider:
     def with_structured_output(self, schema: type) -> Any:
         return self._llm.with_structured_output(schema)
 
+    def bind_tools(self, tools: list) -> Any:
+        return self._llm.bind_tools(tools)
+
 
 def get_llm_provider() -> LLMProvider:
     provider = os.environ.get("LLM_PROVIDER", "ollama")

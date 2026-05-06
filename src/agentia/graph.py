@@ -52,6 +52,23 @@ def react_edge(state: AgentState) -> str:
     return "save_context"
 
 
+def _make_agent(tools: list[BaseTool]):
+    def _agent(state: AgentState) -> dict:
+        iteration = state.get("iteration_count", 0)
+        log.info("node.enter", node="agent", thread_id=state["thread_id"], iteration=iteration)
+        if iteration >= MAX_ITERATIONS:
+            msg = AIMessage(content="已達最大迭代次數，對話已截斷，請重新提問。")
+            log.warning("agent.truncated", thread_id=state["thread_id"])
+            return {"messages": [msg]}
+        llm = get_llm_provider()
+        runnable = llm.bind_tools(tools) if tools else llm._llm
+        messages = [SystemMessage(content=_SYS_PROMPT)] + state["messages"]
+        response = runnable.invoke(messages)
+        log.info("node.exit", node="agent", thread_id=state["thread_id"])
+        return {"messages": [response], "iteration_count": iteration + 1}
+    return _agent
+
+
 def build_graph(checkpointer: BaseCheckpointSaver = None, tools: list[BaseTool] | None = None):
     tools = tools or []
 
@@ -59,8 +76,8 @@ def build_graph(checkpointer: BaseCheckpointSaver = None, tools: list[BaseTool] 
 
     builder.add_node("load_context", load_context_node)
     builder.add_node("router", router_node)
-    builder.add_node("agent", agent_node)
-    builder.add_node("tools", ToolNode(tools))
+    builder.add_node("agent", _make_agent(tools))
+    builder.add_node("tools", ToolNode(tools, handle_tool_errors=True))
     builder.add_node("save_context", save_context_node)
     builder.add_node("clarify", clarify_node)
 

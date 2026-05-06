@@ -74,10 +74,10 @@
 
 ## 12. M2 — Tool System
 
-- [ ] 12.1 實作 `get_current_datetime` tool（回傳 ISO 8601 格式，無需參數）
-- [ ] 12.2 實作 `search_history` tool（PostgreSQL keyword search，回傳最多 5 筆）
-- [ ] 12.3 確認 tool 拋出例外時，graph 捕捉並回傳 `ToolMessage` 而非 crash
-- [ ] 12.4 驗證新增 tool 只需加入 tools list，不需修改任何 graph 結構
+- [x] 12.1 實作 `get_current_datetime` tool（回傳 ISO 8601 格式，無需參數）
+- [x] 12.2 實作 `search_history` tool（PostgreSQL keyword search，回傳最多 5 筆）
+- [x] 12.3 確認 tool 拋出例外時，graph 捕捉並回傳 `ToolMessage` 而非 crash
+- [x] 12.4 驗證新增 tool 只需加入 tools list，不需修改任何 graph 結構
 
 ## 13. M2 — Streaming 與 Observability 升級
 
