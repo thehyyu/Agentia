@@ -14,6 +14,8 @@ from agentia.logging import setup_logging
 from agentia.memory import get_redis, load_context, save_context, persist_messages
 from agentia import graph as graph_module
 from agentia.tools import ALL_TOOLS
+from agentia.events import process_graph_event
+from agentia.observability import make_langfuse_handler
 from langchain_core.messages import HumanMessage
 
 setup_logging()
@@ -89,8 +91,16 @@ async def chat_ws(websocket: WebSocket, thread_id: str = ""):
             # 2. 我們只需要發送當前的 HumanMessage。
             # 3. LangGraph 會根據 thread_id 自動從 Postgres 載入先前的狀態。
             
-            # 設定 Graph 執行參數
-            config = {"configurable": {"thread_id": thread_id}}
+            # 設定 Graph 執行參數（含 Langfuse callback，若環境變數已設定）
+            callbacks = [h for h in [make_langfuse_handler()] if h is not None]
+            config = {
+                "configurable": {"thread_id": thread_id},
+                "callbacks": callbacks,
+                "metadata": {
+                    "langfuse_session_id": thread_id,
+                    "langfuse_trace_name": "chat-response",
+                },
+            }
             # 確保 thread_id 也在 state 中，以便節點記錄日誌
             input_data = {
                 "messages": [HumanMessage(content=user_text)],
@@ -103,11 +113,11 @@ async def chat_ws(websocket: WebSocket, thread_id: str = ""):
                 config=config,
                 version="v2",
             ):
-                if event["event"] == "on_chat_model_stream":
-                    token = event["data"]["chunk"].content
-                    if token:
-                        ai_chunks.append(token)
-                        await websocket.send_json({"type": "token", "content": token})
+                msg = process_graph_event(event)
+                if msg is not None:
+                    if msg["type"] == "token":
+                        ai_chunks.append(msg["content"])
+                    await websocket.send_json(msg)
 
             ai_text = "".join(ai_chunks)
             # 我們仍然保留 persist_messages 用於供歷史紀錄 API (Task 6.5) 查詢

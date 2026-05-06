@@ -81,10 +81,10 @@
 
 ## 13. M2 — Streaming 與 Observability 升級
 
-- [ ] 13.1 更新 `astream_events` handler：區分 `on_chat_model_stream`（送 token）和 `on_tool_end`（log 結果）
-- [ ] 13.2 安裝 `langfuse`，設定 `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY`
-- [ ] 13.3 驗證 Langfuse dashboard 出現 trace 記錄（含 LLM 輸入輸出、token 數）
-- [ ] 13.4 啟動 LangGraph Studio，連接本地 graph，確認可視覺化 state 快照
+- [x] 13.1 更新 `astream_events` handler：區分 `on_chat_model_stream`（送 token）和 `on_tool_end`（log 結果）
+- [x] 13.2 安裝 `langfuse`，設定 `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_SECRET_KEY`
+- [x] 13.3 驗證 Langfuse dashboard 出現 trace 記錄（含 LLM 輸入輸出、token 數）
+- [x] 13.4 啟動 LangGraph Studio，連接本地 graph，確認可視覺化 state 快照
 
 ## 14. M3 — Human-in-the-loop
 
