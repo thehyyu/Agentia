@@ -5,6 +5,7 @@ load_dotenv()
 
 LLM_PROVIDER: str = os.environ.get("LLM_PROVIDER", "ollama")
 LLM_MODEL: str = os.environ.get("LLM_MODEL", "qwen2.5:32b")
+ROUTER_MODEL: str = os.environ.get("ROUTER_MODEL", "mistral:v0.3")
 LLM_BASE_URL: str = os.environ.get("LLM_BASE_URL", "http://localhost:11434")
 
 REDIS_URL: str = os.environ.get("REDIS_URL", "redis://localhost:6379")
@@ -18,3 +19,5 @@ PSYCOPG_DATABASE_URL: str = DATABASE_URL.replace("+asyncpg", "")
 LANGFUSE_PUBLIC_KEY: str = os.environ.get("LANGFUSE_PUBLIC_KEY", "")
 LANGFUSE_SECRET_KEY: str = os.environ.get("LANGFUSE_SECRET_KEY", "")
 LANGFUSE_HOST: str = os.environ.get("LANGFUSE_HOST", "http://localhost:3000")
+
+TAVILY_API_KEY: str = os.environ.get("TAVILY_API_KEY", "")

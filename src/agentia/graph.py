@@ -13,7 +13,12 @@ from agentia.router import router_node, clarify_node, route_by_intent
 log = structlog.get_logger()
 
 MAX_ITERATIONS = 10
-_SYS_PROMPT = "你是一個專業的助理，請務必使用『繁體中文』回答所有問題。"
+_SYS_PROMPT = (
+    "你是一個專業的助理，請務必使用『繁體中文』回答所有問題。\n"
+    "當 retrieve_knowledge 工具回傳參考資料時，請優先引用其內容作答，並標明來源文件。\n"
+    "當 web_search 工具回傳搜尋結果時，請將結果整合為自然語言回答，"
+    "以 [來源標題](URL) 格式標註引用，不要直接列出連結清單。"
+)
 
 
 def load_context_node(state: AgentState) -> dict:
@@ -44,6 +49,10 @@ def save_context_node(state: AgentState) -> dict:
     return {}
 
 
+# Read-only tools that never need human approval
+_SAFE_TOOLS = {"retrieve_knowledge", "web_search", "get_current_datetime", "search_history"}
+
+
 def confirm_tool_node(state: AgentState) -> dict:
     last_msg = state["messages"][-1]
     tool_calls = getattr(last_msg, "tool_calls", None) or []
@@ -52,6 +61,9 @@ def confirm_tool_node(state: AgentState) -> dict:
         return {}
 
     tc = tool_calls[0]
+    if tc["name"] in _SAFE_TOOLS:
+        return {}
+
     approved = interrupt({"tool": tc["name"], "args": tc.get("args", {})})
 
     if approved is True:
@@ -84,6 +96,27 @@ def react_edge(state: AgentState) -> str:
     return "save_context"
 
 
+def _extract_retrieved_context(messages: list) -> str | None:
+    """Return the chunks text from the most recent retrieve_knowledge ToolMessage, if any."""
+    import json as _json
+    # Build a map from tool_call_id → tool name
+    id_to_name: dict[str, str] = {}
+    for msg in messages:
+        for tc in getattr(msg, "tool_calls", None) or []:
+            id_to_name[tc["id"]] = tc["name"]
+    # Find the latest retrieve_knowledge result
+    for msg in reversed(messages):
+        if isinstance(msg, ToolMessage):
+            name = id_to_name.get(getattr(msg, "tool_call_id", ""), "")
+            if name == "retrieve_knowledge":
+                try:
+                    data = _json.loads(msg.content)
+                    return data.get("chunks") or None
+                except Exception:
+                    pass
+    return None
+
+
 def _make_agent(tools: list[BaseTool]):
     def _agent(state: AgentState) -> dict:
         iteration = state.get("iteration_count", 0)
@@ -94,7 +127,13 @@ def _make_agent(tools: list[BaseTool]):
             return {"messages": [msg]}
         llm = get_llm_provider()
         runnable = llm.bind_tools(tools) if tools else llm._llm
-        messages = [SystemMessage(content=_SYS_PROMPT)] + state["messages"]
+
+        extra: list = []
+        ctx = _extract_retrieved_context(state["messages"])
+        if ctx:
+            extra = [SystemMessage(content=f"以下為參考資料：\n\n{ctx}")]
+
+        messages = [SystemMessage(content=_SYS_PROMPT)] + extra + state["messages"]
         response = runnable.invoke(messages)
         log.info("node.exit", node="agent", thread_id=state["thread_id"])
         return {"messages": [response], "iteration_count": iteration + 1}
