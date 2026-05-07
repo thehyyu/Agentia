@@ -1,6 +1,7 @@
 import uuid
 import asyncpg
 import structlog
+from psycopg.rows import dict_row
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import JSONResponse
@@ -76,10 +77,12 @@ async def _ingest_slug(slug: str, content_type: str, pool) -> dict:
         chunks = chunk_text(content)
         embeddings = [await embed_text(chunk, LLM_BASE_URL) for chunk in chunks]
         doc_id = f"{slug}_{lang}"
-        await pool.executemany(
-            "INSERT INTO chunks (doc_id, content, embedding) VALUES ($1, $2, $3::vector)",
-            [(doc_id, chunk, str(emb)) for chunk, emb in zip(chunks, embeddings)],
-        )
+        async with pool.connection() as conn:
+            async with conn.cursor() as cur:
+                await cur.executemany(
+                    "INSERT INTO chunks (doc_id, content, embedding) VALUES (%s, %s, %s::vector)",
+                    [(doc_id, chunk, str(emb)) for chunk, emb in zip(chunks, embeddings)],
+                )
         result[lang] = {"chunks": len(chunks)}
     return result
 
@@ -99,7 +102,10 @@ async def ingest_knowledge(body: dict, pool=Depends(get_db_pool)):
 async def sync_knowledge(pool=Depends(get_db_pool)):
     all_slugs = await fetch_all_slugs()
 
-    existing = await pool.fetch("SELECT DISTINCT doc_id FROM chunks")
+    async with pool.connection() as conn:
+        async with conn.cursor(row_factory=dict_row) as cur:
+            await cur.execute("SELECT DISTINCT doc_id FROM chunks")
+            existing = await cur.fetchall()
     existing_slugs = {row["doc_id"].rsplit("_", 1)[0] for row in existing}
 
     ingested, skipped = 0, 0
