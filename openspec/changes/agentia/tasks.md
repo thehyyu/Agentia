@@ -95,16 +95,16 @@
 
 ## 15. M3 — FastAPI Dependency Injection
 
-- [ ] 15.1 將 graph、redis client、db connection 抽出為 FastAPI `Depends()` 函式
-- [ ] 15.2 重構 WebSocket endpoint 使用 DI 注入，移除全域狀態
+- [x] 15.1 將 graph、redis client、db connection 抽出為 FastAPI `Depends()` 函式
+- [x] 15.2 重構 WebSocket endpoint 使用 DI 注入，移除全域狀態
 
 ## 16. M3 — Chat Widget（React Web Component）
 
-- [ ] 16.1 初始化 React + Vite 專案（widget 子目錄）
-- [ ] 16.2 實作 `<agentia-chat>` Web Component，使用 Shadow DOM 隔離樣式
-- [ ] 16.3 實作 token-by-token streaming 渲染
-- [ ] 16.4 實作 HITL 確認 dialog UI（顯示 tool 名稱與 args，Confirm / Cancel 按鈕）
-- [ ] 16.5 `npm run build` 產出 `widget.js`，嵌入外部測試頁面驗證無樣式衝突
+- [x] 16.1 初始化 React + Vite 專案（widget 子目錄）
+- [x] 16.2 實作 `<agentia-chat>` Web Component，使用 Shadow DOM 隔離樣式
+- [x] 16.3 實作 token-by-token streaming 渲染
+- [x] 16.4 實作 HITL 確認 dialog UI（顯示 tool 名稱與 args，Confirm / Cancel 按鈕）
+- [x] 16.5 `npm run build` 產出 `widget.js`，嵌入外部測試頁面驗證無樣式衝突
 
 ## 17. M4 — pgvector 與 Embedding 設定
 
