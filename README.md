@@ -8,8 +8,6 @@
 
 > 一個以學習為目的的個人 AI Agent 系統，完整實作 RAG、Multi-agent Supervisor 架構、LangGraph 狀態機、Human-in-the-loop，以及可嵌入任何網頁的 React Web Component。
 
-Agentia 是 [thehyyu](https://github.com/thehyyu) 為了深入理解現代 AI agent engineering 而建立的學習專案。所有架構決策都刻意以「手寫」而非框架自動生成的方式實現，確保每個 node、edge、tool 的行為都完全可視。
-
 ---
 
 ## 🗺️ 系統架構
@@ -469,5 +467,3 @@ uv run pytest tests/test_task_21*.py -v
 ```
 
 ---
-
-*Built with ❤️ as a learning project — every line written by hand, every concept earned.*
