@@ -1,6 +1,7 @@
 import pytest
 from langchain_core.messages import HumanMessage
-from agentia.graph import graph
+from agentia.graph import build_graph as _build_graph
+graph = _build_graph()
 
 @pytest.mark.integration
 @pytest.mark.asyncio

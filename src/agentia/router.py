@@ -11,14 +11,15 @@ log = structlog.get_logger()
 _router_llm = ChatOllama(model=ROUTER_MODEL, base_url=LLM_BASE_URL)
 
 CONFIDENCE_THRESHOLD = 0.6
-VALID_INTENTS = frozenset({"chitchat", "tool_use", "knowledge_query", "writing_assist"})
+VALID_INTENTS = frozenset({"chitchat", "tool_use", "knowledge_query", "writing_assist", "moon_phase"})
 
 _ROUTER_SYSTEM = SystemMessage(content=(
     "Classify the user's latest message into EXACTLY one of these intents:\n"
     "- chitchat: casual conversation, greetings, small talk, sharing daily life\n"
     "- tool_use: requests that need tools (time, search, calculations)\n"
     "- knowledge_query: questions seeking factual information or explanation\n"
-    "- writing_assist: writing, editing, translation, summarization tasks\n\n"
+    "- writing_assist: writing, editing, translation, summarization tasks\n"
+    "- moon_phase: any question about the current moon phase, lunar cycle, or moon-related topics\n\n"
     "Reply with the intent label and a confidence score 0.0–1.0. "
     "Do not invent other intent names."
 ))

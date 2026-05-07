@@ -11,3 +11,4 @@ class AgentState(TypedDict):
     intent_confidence: NotRequired[float]
     tool_results: NotRequired[list]
     iteration_count: NotRequired[int]
+    moon_phase_data: NotRequired[dict]
