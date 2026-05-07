@@ -1,11 +1,14 @@
 import structlog
 from pydantic import BaseModel, Field
 from langchain_core.messages import AIMessage, SystemMessage
+from langchain_ollama import ChatOllama
 
 from agentia.models import AgentState
-from agentia.llm import get_llm_provider
+from agentia.config import LLM_BASE_URL, ROUTER_MODEL
 
 log = structlog.get_logger()
+
+_router_llm = ChatOllama(model=ROUTER_MODEL, base_url=LLM_BASE_URL)
 
 CONFIDENCE_THRESHOLD = 0.6
 VALID_INTENTS = frozenset({"chitchat", "tool_use", "knowledge_query", "writing_assist"})
@@ -28,8 +31,7 @@ class IntentClassification(BaseModel):
 
 def router_node(state: AgentState) -> dict:
     log.info("node.enter", node="router", thread_id=state["thread_id"])
-    llm = get_llm_provider()
-    structured_llm = llm.with_structured_output(IntentClassification)
+    structured_llm = _router_llm.with_structured_output(IntentClassification)
     result: IntentClassification = structured_llm.invoke([_ROUTER_SYSTEM] + list(state["messages"]))
     log.info(
         "node.exit",
