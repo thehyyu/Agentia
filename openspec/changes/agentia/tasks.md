@@ -125,10 +125,10 @@
 
 ## 19. M4 — Knowledge Retrieval Tool
 
-- [ ] 19.1 實作 `retrieve_knowledge(query)` tool：embed query → cosine search top 5 chunks
-- [ ] 19.2 將 retrieved chunks 以 SystemMessage 注入 LLM context（標註「以下為參考資料：」）
-- [ ] 19.3 回傳 `related_articles`（最多 3 筆同文件或相似文件標題）
-- [ ] 19.4 驗證：上傳一篇 blog 文章 → 問其中的內容 → 模型正確引用原文回答
+- [x] 19.1 實作 `retrieve_knowledge(query)` tool：embed query → cosine search top 5 chunks
+- [x] 19.2 將 retrieved chunks 以 SystemMessage 注入 LLM context（標註「以下為參考資料：」）
+- [x] 19.3 回傳 `related_articles`（最多 3 筆同文件或相似文件標題）
+- [x] 19.4 驗證：上傳一篇 blog 文章 → 問其中的內容 → 模型正確引用原文回答
 
 ## 20. M4 — Writing Assistant
 

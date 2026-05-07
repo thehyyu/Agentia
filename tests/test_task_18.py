@@ -64,16 +64,29 @@ def test_18_3_chunks_have_overlap():
 
 @pytest.fixture()
 def client():
+    # psycopg AsyncConnectionPool uses `async with pool.connection() as conn:`
+    mock_cursor = AsyncMock()
+    mock_cursor.execute = AsyncMock()
+    mock_cursor.executemany = AsyncMock()
+    mock_cursor.fetchall = AsyncMock(return_value=[])
+    mock_cursor.__aenter__ = AsyncMock(return_value=mock_cursor)
+    mock_cursor.__aexit__ = AsyncMock(return_value=None)
+
+    mock_conn = AsyncMock()
+    mock_conn.cursor = MagicMock(return_value=mock_cursor)
+    mock_conn.__aenter__ = AsyncMock(return_value=mock_conn)
+    mock_conn.__aexit__ = AsyncMock(return_value=None)
+
     mock_pool = MagicMock()
-    mock_pool.executemany = AsyncMock()
-    mock_pool.fetch = AsyncMock(return_value=[])
+    mock_pool.connection = MagicMock(return_value=mock_conn)
+
     app.dependency_overrides[get_db_pool] = lambda: mock_pool
-    yield TestClient(app), mock_pool
+    yield TestClient(app), mock_pool, mock_conn, mock_cursor
     app.dependency_overrides.clear()
 
 
 def test_18_1_ingest_post_both_languages(httpx_mock: HTTPXMock, client):
-    test_client, _ = client
+    test_client, *_ = client
     httpx_mock.add_response(
         url="https://thehyyu-blog.vercel.app/api/posts/abc123?lang=zh",
         json=fake_response("abc123", "zh"),
@@ -96,7 +109,7 @@ def test_18_1_ingest_post_both_languages(httpx_mock: HTTPXMock, client):
 
 
 def test_18_1_ingest_project_both_languages(httpx_mock: HTTPXMock, client):
-    test_client, _ = client
+    test_client, *_ = client
     httpx_mock.add_response(
         url="https://thehyyu-blog.vercel.app/api/projects/tangram?lang=zh",
         json=fake_response("tangram", "zh", "project"),
@@ -119,7 +132,7 @@ def test_18_1_ingest_project_both_languages(httpx_mock: HTTPXMock, client):
 
 
 def test_18_5_doc_id_uses_slug_and_lang(httpx_mock: HTTPXMock, client):
-    test_client, mock_pool = client
+    test_client, _, _, mock_cursor = client
     httpx_mock.add_response(
         url="https://thehyyu-blog.vercel.app/api/posts/abc123?lang=zh",
         json=fake_response("abc123", "zh"),
@@ -132,14 +145,14 @@ def test_18_5_doc_id_uses_slug_and_lang(httpx_mock: HTTPXMock, client):
 
     test_client.post("/api/knowledge/ingest", json={"slug": "abc123"})
 
-    assert mock_pool.executemany.call_count == 2
-    doc_ids = {call.args[1][0][0] for call in mock_pool.executemany.call_args_list}
+    assert mock_cursor.executemany.call_count == 2
+    doc_ids = {call.args[1][0][0] for call in mock_cursor.executemany.call_args_list}
     assert "abc123_zh" in doc_ids
     assert "abc123_en" in doc_ids
 
 
 def test_18_missing_language_is_skipped(httpx_mock: HTTPXMock, client):
-    test_client, _ = client
+    test_client, *_ = client
     httpx_mock.add_response(
         url="https://thehyyu-blog.vercel.app/api/posts/abc123?lang=zh",
         json=fake_response("abc123", "zh"),
@@ -159,8 +172,8 @@ def test_18_missing_language_is_skipped(httpx_mock: HTTPXMock, client):
 
 
 def test_18_7_sync_ingests_new_and_skips_existing(httpx_mock: HTTPXMock, client):
-    test_client, mock_pool = client
-    mock_pool.fetch = AsyncMock(return_value=[{"doc_id": "existing_zh"}])
+    test_client, _, _, mock_cursor = client
+    mock_cursor.fetchall = AsyncMock(return_value=[{"doc_id": "existing_zh"}])
 
     httpx_mock.add_response(
         url="https://thehyyu-blog.vercel.app/api/posts",
@@ -189,7 +202,7 @@ def test_18_7_sync_ingests_new_and_skips_existing(httpx_mock: HTTPXMock, client)
 
 
 def test_18_6_returns_404_when_slug_not_found(httpx_mock: HTTPXMock, client):
-    test_client, _ = client
+    test_client, *_ = client
     httpx_mock.add_response(
         url="https://thehyyu-blog.vercel.app/api/posts/notexist?lang=zh",
         status_code=404,
