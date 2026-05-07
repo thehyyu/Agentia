@@ -1,0 +1,20 @@
+slug: agentia
+title_zh: Agentia — 個人 AI Agent 系統
+title_en: Agentia — Personal AI Agent System
+tagline_zh: 以 LangGraph 打造的 RAG + Multi-agent 對話平台
+tagline_en: A conversational AI platform with RAG and multi-agent supervisor built on LangGraph
+tech_stack:
+  - Python
+  - FastAPI
+  - LangGraph
+  - PostgreSQL / pgvector
+  - Redis
+  - Ollama (qwen2.5:32b, bge-m3, mistral)
+  - React (Web Component)
+  - Langfuse
+  - Tavily
+  - ephem
+github_url: https://github.com/thehyyu/Agentia
+demo_url: ""
+status: active
+started_at: "2026-05"
