@@ -108,10 +108,10 @@
 
 ## 17. M4 — pgvector 與 Embedding 設定
 
-- [ ] 17.1 在 PostgreSQL 啟用 `CREATE EXTENSION vector`
-- [ ] 17.2 建立 `chunks` 表（`id`, `doc_id`, `content`, `embedding vector(768)`, `created_at`）
-- [ ] 17.3 以 `ollama pull nomic-embed-text` 下載本地 embedding 模型
-- [ ] 17.4 驗證 Ollama embedding API 回傳 768 維向量
+- [x] 17.1 在 PostgreSQL 啟用 `CREATE EXTENSION vector`
+- [x] 17.2 建立 `chunks` 表（`id`, `doc_id`, `content`, `embedding vector(1024)`, `created_at`）
+- [x] 17.3 以 `ollama pull bge-m3` 下載本地 embedding 模型（多語言，支援繁體中文）
+- [x] 17.4 驗證 Ollama embedding API 回傳 1024 維向量
 
 ## 18. M4 — 知識庫 Ingestion
 
