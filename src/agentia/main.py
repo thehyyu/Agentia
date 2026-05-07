@@ -21,6 +21,8 @@ from agentia.events import process_graph_event
 from agentia.observability import make_langfuse_handler
 from agentia.hitl import extract_pending_interrupt, parse_ws_message, wait_for_confirmation
 from agentia.dependencies import get_graph, get_db_pool, get_redis
+from agentia.ingest import chunk_text, fetch_content, embed_text, fetch_all_slugs, LANGS
+from agentia.config import LLM_BASE_URL
 from langchain_core.messages import HumanMessage
 
 setup_logging()
@@ -31,7 +33,7 @@ async def lifespan(app: FastAPI):
     # 啟動時：建立資料庫連線池與 Checkpointer
     # 注意：必須設定 autocommit=True 以允許 checkpointer 執行 CREATE INDEX CONCURRENTLY
     async with AsyncConnectionPool(
-        conninfo=PSYCOPG_DATABASE_URL, 
+        conninfo=PSYCOPG_DATABASE_URL,
         max_size=20,
         kwargs={"autocommit": True}
     ) as pool:
@@ -39,10 +41,10 @@ async def lifespan(app: FastAPI):
         checkpointer = AsyncPostgresSaver(pool)
         # 建立必要的工作資料表
         await checkpointer.setup()
-        
+
         # 注入具備持久化能力的 Graph，存入 app.state 供 DI 使用
         app.state.graph = graph_module.build_graph(checkpointer=checkpointer, tools=ALL_TOOLS)
-        
+
         log.info("app.startup", checkpointer="AsyncPostgresSaver")
         yield
     # 關閉時：Pool 會自動關閉
@@ -59,6 +61,58 @@ async def health(pool=Depends(get_db_pool), redis=Depends(get_redis)):
         content={"status": "ok" if all_ok else "degraded", "checks": status},
         status_code=200 if all_ok else 503,
     )
+
+
+async def _ingest_slug(slug: str, content_type: str, pool) -> dict:
+    """Shared logic for ingesting a single slug (both languages)."""
+    result: dict[str, object] = {"slug": slug, "type": content_type}
+    for lang in LANGS:
+        content = await fetch_content(slug, lang, content_type)
+        if content is None and lang == "zh":
+            return {}
+        if not content:
+            result[lang] = None
+            continue
+        chunks = chunk_text(content)
+        embeddings = [await embed_text(chunk, LLM_BASE_URL) for chunk in chunks]
+        doc_id = f"{slug}_{lang}"
+        await pool.executemany(
+            "INSERT INTO chunks (doc_id, content, embedding) VALUES ($1, $2, $3::vector)",
+            [(doc_id, chunk, str(emb)) for chunk, emb in zip(chunks, embeddings)],
+        )
+        result[lang] = {"chunks": len(chunks)}
+    return result
+
+
+@app.post("/api/knowledge/ingest")
+async def ingest_knowledge(body: dict, pool=Depends(get_db_pool)):
+    slug = body.get("slug", "")
+    content_type = body.get("type", "post")
+    result = await _ingest_slug(slug, content_type, pool)
+    if not result:
+        return JSONResponse(status_code=404, content={"detail": f"'{slug}' not found"})
+    log.info("knowledge.ingested", slug=slug, type=content_type)
+    return result
+
+
+@app.post("/api/knowledge/sync")
+async def sync_knowledge(pool=Depends(get_db_pool)):
+    all_slugs = await fetch_all_slugs()
+
+    existing = await pool.fetch("SELECT DISTINCT doc_id FROM chunks")
+    existing_slugs = {row["doc_id"].rsplit("_", 1)[0] for row in existing}
+
+    ingested, skipped = 0, 0
+    for slug, content_type in all_slugs:
+        if slug in existing_slugs:
+            skipped += 1
+            continue
+        result = await _ingest_slug(slug, content_type, pool)
+        if result:
+            ingested += 1
+
+    log.info("knowledge.synced", ingested=ingested, skipped=skipped)
+    return {"ingested": ingested, "skipped": skipped}
 
 
 @app.get("/api/conversations/{thread_id}")
