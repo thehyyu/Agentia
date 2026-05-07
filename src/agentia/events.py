@@ -12,9 +12,9 @@ def process_graph_event(event: dict) -> dict | None:
     kind = event.get("event")
 
     if kind == "on_chat_model_stream":
-        # Only stream tokens from the agent node; other nodes (e.g. router) use
-        # internal LLM calls whose raw output should not reach the UI.
-        if event.get("metadata", {}).get("langgraph_node") != "agent":
+        # Block tokens from internal routing nodes; all user-facing nodes stream freely.
+        _SILENT_NODES = {"router"}
+        if event.get("metadata", {}).get("langgraph_node") in _SILENT_NODES:
             return None
         token = event["data"]["chunk"].content
         if token:
