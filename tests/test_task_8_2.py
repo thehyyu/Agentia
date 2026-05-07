@@ -11,7 +11,7 @@ async def test_task_8_2_graph_uses_postgres_checkpointer_in_lifespan():
     """
     # 避免依賴外部套件，直接使用 FastAPI 內建的 lifespan 處理
     async with app.router.lifespan_context(app):
-        # 此時 graph_module.graph 應該已經在 main.py 的 lifespan 中被替換
-        assert isinstance(graph_module.graph.checkpointer, AsyncPostgresSaver), \
-            f"啟動後預期為 AsyncPostgresSaver, 但得到的是 {type(graph_module.graph.checkpointer)}"
+        # Task 15 DI 重構後，graph 存在 app.state.graph 而非 graph_module.graph
+        assert isinstance(app.state.graph.checkpointer, AsyncPostgresSaver), \
+            f"啟動後預期為 AsyncPostgresSaver, 但得到的是 {type(app.state.graph.checkpointer)}"
         print("\n驗證成功：Graph 已成功注入 AsyncPostgresSaver。")

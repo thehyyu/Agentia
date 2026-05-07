@@ -1,12 +1,17 @@
 import pytest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, patch, MagicMock
 from fastapi.testclient import TestClient
+from agentia.dependencies import get_db_pool, get_redis
 
 
 @pytest.fixture()
 def client():
     from agentia.main import app
-    return TestClient(app)
+    # Override dependencies that require app.state
+    app.dependency_overrides[get_db_pool] = lambda: MagicMock()
+    app.dependency_overrides[get_redis] = lambda: AsyncMock()
+    yield TestClient(app)
+    app.dependency_overrides.clear()
 
 
 def test_health_returns_200_when_all_ok(client):
