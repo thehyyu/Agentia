@@ -130,21 +130,17 @@
 - [x] 19.3 回傳 `related_articles`（最多 3 筆同文件或相似文件標題）
 - [x] 19.4 驗證：上傳一篇 blog 文章 → 問其中的內容 → 模型正確引用原文回答
 
-## 20. M4 — Writing Assistant
+## 20. M4 — Writing Assistant（已跳過）
 
-- [ ] 20.1 建立 writing-assistant subgraph（retrieve style samples → draft → suggest tags → cross-reference）
-- [ ] 20.2 將 `writing_assist` intent 路由至 writing-assistant subgraph
-- [ ] 20.3 實作 tag 建議：從現有文章的 tag 詞彙中選出 3–5 個
-- [ ] 20.4 實作 cross-reference：搜尋相關舊文章，回傳最多 5 筆標題
-- [ ] 20.5 驗證多輪修改：使用者說「讓第二段更簡潔」後 draft 正確更新
+> 無明確使用需求，跳過此 milestone。
 
-## 21. M5 — Agent Supervisor
+## 21. M5 — Agent Supervisor + Moon Phase Agent
 
-- [ ] 21.1 建立 Supervisor StateGraph，以 intent 為路由鍵
+- [ ] 21.1 在 router 新增 `moon_phase` intent，更新 VALID_INTENTS 與 graph conditional edges
 - [ ] 21.2 將現有 chat graph 包裝為 General Chat Agent subgraph
-- [ ] 21.3 將 knowledge retrieval 包裝為 Knowledge Agent subgraph
-- [ ] 21.4 將 writing assistant 包裝為 Writing Assistant Agent subgraph
-- [ ] 21.5 實作 Newsletter Agent subgraph（取最近 30 天文章 → 合成電子報草稿）
-- [ ] 21.6 確認子 agent 錯誤不影響 Supervisor 及其他子 agent
+- [ ] 21.3 建立 Supervisor StateGraph，以 intent 路由至 General Chat Agent 或 Moon Phase Agent
+- [ ] 21.4 實作 Moon Phase Agent subgraph — Node 1：以 `ephem` 計算當前月相（phase name、illumination %、days to next new/full moon）
+- [ ] 21.5 實作 Moon Phase Agent subgraph — Node 2：LLM 生成東西方傳統詮釋（道家哲學 + 西方天文民俗）
+- [ ] 21.6 確認 Moon Phase Agent 錯誤不影響 Supervisor 及 General Chat Agent
 - [ ] 21.7 在 Langfuse trace 加入 `handled_by` 欄位，標記路由至哪個子 agent
-- [ ] 21.8 端對端驗證：「幫我整理最近的文章成電子報」→ Newsletter Agent 正確執行
+- [ ] 21.8 端對端驗證：「今天月相是什麼？」→ Moon Phase Agent 回傳月相數據與東西方詮釋
