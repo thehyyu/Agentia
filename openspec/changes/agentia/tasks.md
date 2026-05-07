@@ -115,12 +115,13 @@
 
 ## 18. M4 — 知識庫 Ingestion
 
-- [ ] 18.1 實作 `POST /api/knowledge/ingest` 接受 PDF、TXT、Markdown 上傳
-- [ ] 18.2 實作 PDF 解析（`pypdf`）
-- [ ] 18.3 實作文字分段（500 token、50 token overlap）
-- [ ] 18.4 實作 embedding：每個 chunk 呼叫 Ollama `nomic-embed-text`
-- [ ] 18.5 批次 INSERT chunks 至 pgvector 表
-- [ ] 18.6 不支援的檔案格式回傳 400
+- [x] 18.1 實作 `POST /api/knowledge/ingest`，接受 `{"slug": "..."}` 同時 ingest zh 與 en
+- [x] 18.2 從 Echoforge API (`/api/posts/{slug}?lang=zh` 與 `?lang=en`) 抓取雙語內容
+- [x] 18.3 實作文字分段（500 字、50 字 overlap，字數近似 token 數）
+- [x] 18.4 實作 embedding：每個 chunk 呼叫 Ollama `bge-m3`
+- [x] 18.5 批次 INSERT chunks 至 pgvector 表，`doc_id = "{slug}_zh"` / `"{slug}_en"`
+- [x] 18.6 Echoforge API 回傳 404（slug 不存在）時，endpoint 回傳 404
+- [x] 18.7 實作 `POST /api/knowledge/sync`：抓取所有 posts + projects，略過已存在的 slug，回傳 `{ingested, skipped}`
 
 ## 19. M4 — Knowledge Retrieval Tool
 
