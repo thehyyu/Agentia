@@ -13,7 +13,7 @@ A blog-native AI agent platform built to learn LangGraph — multi-agent orchest
 | LLM | Ollama (`qwen2.5:32b`) + langchain-ollama | Local-first; pluggable via `LLM_PROVIDER` env var |
 | Short-term memory (M1) | Redis | Session context, TTL 1hr |
 | Long-term memory | PostgreSQL | Messages table + LangGraph `AsyncPostgresSaver` (M2+) |
-| Vector search | pgvector (PostgreSQL extension) | `nomic-embed-text` embeddings, 768 dims |
+| Vector search | pgvector (PostgreSQL extension) | `bge-m3` embeddings, 1024 dims (multilingual, Traditional Chinese support) |
 | Observability | structlog + LangGraph Studio + Langfuse (self-hosted) | See Decision 8 in `openspec/changes/agentia/design.md` |
 | Frontend | Plain HTML (M1–M2) → React Web Component (M3+) | Shadow DOM, single `<script>` embed |
 | Containers | Docker Compose | backend + postgres + redis + langfuse; Ollama on host |
