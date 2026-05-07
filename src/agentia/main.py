@@ -9,6 +9,8 @@ from psycopg_pool import AsyncConnectionPool
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from langgraph.types import Command
 
+from fastapi import Depends
+
 from agentia.config import DATABASE_URL, PSYCOPG_DATABASE_URL
 from agentia.health import get_health
 from agentia.logging import setup_logging
@@ -18,6 +20,7 @@ from agentia.tools import ALL_TOOLS
 from agentia.events import process_graph_event
 from agentia.observability import make_langfuse_handler
 from agentia.hitl import extract_pending_interrupt, parse_ws_message, wait_for_confirmation
+from agentia.dependencies import get_graph, get_db_pool, get_redis
 from langchain_core.messages import HumanMessage
 
 setup_logging()
@@ -32,12 +35,13 @@ async def lifespan(app: FastAPI):
         max_size=20,
         kwargs={"autocommit": True}
     ) as pool:
+        app.state.pool = pool
         checkpointer = AsyncPostgresSaver(pool)
         # 建立必要的工作資料表
         await checkpointer.setup()
         
-        # 注入具備持久化能力的 Graph
-        graph_module.graph = graph_module.build_graph(checkpointer=checkpointer, tools=ALL_TOOLS)
+        # 注入具備持久化能力的 Graph，存入 app.state 供 DI 使用
+        app.state.graph = graph_module.build_graph(checkpointer=checkpointer, tools=ALL_TOOLS)
         
         log.info("app.startup", checkpointer="AsyncPostgresSaver")
         yield
@@ -48,8 +52,8 @@ app = FastAPI(title="Agentia", lifespan=lifespan)
 
 
 @app.get("/health")
-async def health():
-    status = await get_health()
+async def health(pool=Depends(get_db_pool), redis=Depends(get_redis)):
+    status = await get_health(redis=redis, pool=pool)
     all_ok = all(v == "ok" for v in status.values())
     return JSONResponse(
         content={"status": "ok" if all_ok else "degraded", "checks": status},
@@ -58,24 +62,21 @@ async def health():
 
 
 @app.get("/api/conversations/{thread_id}")
-async def get_conversation(thread_id: str):
-    conn = await asyncpg.connect(dsn=DATABASE_URL.replace("+asyncpg", ""))
-    try:
-        rows = await conn.fetch(
+async def get_conversation(thread_id: str, pool=Depends(get_db_pool)):
+    async with pool.connection() as conn:
+        rows = await conn.execute(
             "SELECT role, content, created_at FROM messages "
-            "WHERE thread_id = $1 ORDER BY created_at ASC",
-            thread_id,
+            "WHERE thread_id = %s ORDER BY created_at ASC",
+            (thread_id,),
         )
         return [
-            {"role": r["role"], "content": r["content"], "created_at": str(r["created_at"])}
-            for r in rows
+            {"role": r[0], "content": r[1], "created_at": str(r[2])}
+            for r in await rows.fetchall()
         ]
-    finally:
-        await conn.close()
 
 
 @app.websocket("/ws/chat")
-async def chat_ws(websocket: WebSocket, thread_id: str = ""):
+async def chat_ws(websocket: WebSocket, thread_id: str = "", graph=Depends(get_graph)):
     await websocket.accept()
     if not thread_id:
         thread_id = str(uuid.uuid4())
@@ -113,7 +114,7 @@ async def chat_ws(websocket: WebSocket, thread_id: str = ""):
             ai_chunks: list[str] = []
 
             async def _stream(graph_in):
-                async for event in graph_module.graph.astream_events(
+                async for event in graph.astream_events(
                     graph_in, config=config, version="v2"
                 ):
                     msg = process_graph_event(event)
@@ -126,8 +127,8 @@ async def chat_ws(websocket: WebSocket, thread_id: str = ""):
 
             # HITL: check for pending interrupt after each stream run
             # (requires checkpointer — skipped in tests that run without lifespan)
-            while graph_module.graph.checkpointer is not None:
-                state = await graph_module.graph.aget_state(config)
+            while graph.checkpointer is not None:
+                state = await graph.aget_state(config)
                 interrupt_payload = extract_pending_interrupt(state)
                 if interrupt_payload is None:
                     break
