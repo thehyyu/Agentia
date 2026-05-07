@@ -8,7 +8,6 @@ from langgraph.types import interrupt
 
 from agentia.models import AgentState
 from agentia.llm import get_llm_provider
-from agentia.router import router_node, clarify_node, route_by_intent
 
 log = structlog.get_logger()
 
@@ -143,32 +142,20 @@ def _make_agent(tools: list[BaseTool]):
     return _agent
 
 
-def build_graph(checkpointer: BaseCheckpointSaver = None, tools: list[BaseTool] | None = None):
+def build_chat_subgraph(tools: list[BaseTool] | None = None):
+    """General Chat Agent subgraph (no router, no checkpointer — used inside Supervisor)."""
     tools = tools or []
 
     builder = StateGraph(AgentState)
 
     builder.add_node("load_context", load_context_node)
-    builder.add_node("router", router_node)
     builder.add_node("agent", _make_agent(tools))
     builder.add_node("confirm_tool", confirm_tool_node)
     builder.add_node("tools", ToolNode(tools, handle_tool_errors=True))
     builder.add_node("save_context", save_context_node)
-    builder.add_node("clarify", clarify_node)
 
     builder.add_edge(START, "load_context")
-    builder.add_edge("load_context", "router")
-    builder.add_conditional_edges(
-        "router",
-        route_by_intent,
-        {
-            "chitchat": "agent",
-            "tool_use": "agent",
-            "knowledge_query": "agent",
-            "writing_assist": "agent",
-            "clarify": "clarify",
-        },
-    )
+    builder.add_edge("load_context", "agent")
     builder.add_conditional_edges(
         "agent",
         react_edge,
@@ -180,10 +167,14 @@ def build_graph(checkpointer: BaseCheckpointSaver = None, tools: list[BaseTool] 
         {"tools": "tools", "agent": "agent"},
     )
     builder.add_edge("tools", "agent")
-    builder.add_edge("clarify", END)
     builder.add_edge("save_context", END)
 
-    return builder.compile(checkpointer=checkpointer)
+    return builder.compile()
+
+
+def build_graph(checkpointer: BaseCheckpointSaver = None, tools: list[BaseTool] | None = None):
+    from agentia.supervisor import build_supervisor
+    return build_supervisor(checkpointer=checkpointer, tools=tools)
 
 
 graph = build_graph()

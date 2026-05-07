@@ -13,6 +13,6 @@ def test_task_8_1_build_graph_accepts_checkpointer():
 
 
 def test_task_8_1_default_graph_has_no_checkpointer():
-    """module-level graph 不帶 checkpointer，由 lifespan 在啟動時替換。"""
-    from agentia.graph import graph
-    assert graph.checkpointer is None
+    """build_graph() 不帶 checkpointer 引數時，回傳的 graph 不帶 checkpointer。"""
+    g = build_graph()
+    assert g.checkpointer is None

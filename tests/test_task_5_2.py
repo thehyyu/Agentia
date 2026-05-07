@@ -1,6 +1,7 @@
 import pytest
 from langchain_core.messages import HumanMessage, AIMessage
-from agentia.graph import graph
+from agentia.graph import build_graph as _build_graph
+graph = _build_graph()
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -34,4 +35,5 @@ def test_task_5_2_graph_structure():
     """
     # 檢查編譯後的 Graph 節點清單
     # 注意：graph.nodes 在 LangGraph 中是一個 dict
-    assert "agent" in graph.nodes
+    assert "general_chat" in graph.nodes
+    assert "router" in graph.nodes

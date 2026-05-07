@@ -1,7 +1,8 @@
 import pytest
 from structlog.testing import capture_logs
 from langchain_core.messages import HumanMessage
-from agentia.graph import graph
+from agentia.graph import build_graph as _build_graph
+graph = _build_graph()
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -10,7 +11,7 @@ async def test_task_5_3_node_logging():
     Task 5.3 TDD: 驗證 Node 執行時是否有正確噴出 structlog。
     """
     input_state = {
-        "messages": [HumanMessage(content="Hello")],
+        "messages": [HumanMessage(content="Hi, how are you today? Just saying hello!")],
         "thread_id": "test-logging-5-3"
     }
     

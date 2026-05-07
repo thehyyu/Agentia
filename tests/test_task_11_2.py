@@ -4,7 +4,7 @@ from agentia.graph import build_graph
 def test_compiled_graph_contains_all_required_nodes():
     g = build_graph()
     node_names = set(g.nodes.keys())
-    expected = {"load_context", "router", "agent", "tools", "save_context", "clarify"}
+    expected = {"router", "general_chat", "moon_phase", "clarify"}
     assert expected.issubset(node_names)
 
 

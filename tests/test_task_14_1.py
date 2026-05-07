@@ -7,7 +7,7 @@ from langgraph.types import Command
 from agentia.graph import confirm_tool_node, after_confirm_edge
 from agentia.models import AgentState
 
-_TOOL_CALL = {"name": "get_current_datetime", "args": {}, "id": "call_1", "type": "tool_call"}
+_TOOL_CALL = {"name": "send_email", "args": {"to": "test@example.com"}, "id": "call_1", "type": "tool_call"}
 
 
 def _make_test_graph():
@@ -66,7 +66,7 @@ async def test_confirm_tool_interrupt_payload():
     state = await graph.aget_state(config)
     interrupts = [i for task in state.tasks for i in task.interrupts]
     assert len(interrupts) == 1
-    assert interrupts[0].value["tool"] == "get_current_datetime"
+    assert interrupts[0].value["tool"] == "send_email"
     assert "args" in interrupts[0].value
 
 

@@ -1,6 +1,7 @@
 import pytest
 from langchain_core.messages import HumanMessage, AIMessage
-from agentia.graph import graph
+from agentia.graph import build_graph as _build_graph
+graph = _build_graph()
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -28,6 +29,8 @@ def test_graph_structure():
     """
     # The compiled graph has nodes and edges info
     # In langgraph, we can check graph.nodes
-    assert "agent" in graph.nodes
+    assert "general_chat" in graph.nodes
+    assert "moon_phase" in graph.nodes
+    assert "router" in graph.nodes
     # Check edges (this is slightly more complex in compiled graphs, 
     # but we can at least check for the existence of the node)
