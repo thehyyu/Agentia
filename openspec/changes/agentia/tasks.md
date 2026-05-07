@@ -136,11 +136,11 @@
 
 ## 21. M5 — Agent Supervisor + Moon Phase Agent
 
-- [ ] 21.1 在 router 新增 `moon_phase` intent，更新 VALID_INTENTS 與 graph conditional edges
-- [ ] 21.2 將現有 chat graph 包裝為 General Chat Agent subgraph
-- [ ] 21.3 建立 Supervisor StateGraph，以 intent 路由至 General Chat Agent 或 Moon Phase Agent
-- [ ] 21.4 實作 Moon Phase Agent subgraph — Node 1：以 `ephem` 計算當前月相（phase name、illumination %、days to next new/full moon）
-- [ ] 21.5 實作 Moon Phase Agent subgraph — Node 2：LLM 生成東西方傳統詮釋（道家哲學 + 西方天文民俗）
-- [ ] 21.6 確認 Moon Phase Agent 錯誤不影響 Supervisor 及 General Chat Agent
-- [ ] 21.7 在 Langfuse trace 加入 `handled_by` 欄位，標記路由至哪個子 agent
-- [ ] 21.8 端對端驗證：「今天月相是什麼？」→ Moon Phase Agent 回傳月相數據與東西方詮釋
+- [x] 21.1 在 router 新增 `moon_phase` intent，更新 VALID_INTENTS 與 graph conditional edges
+- [x] 21.2 將現有 chat graph 包裝為 General Chat Agent subgraph
+- [x] 21.3 建立 Supervisor StateGraph，以 intent 路由至 General Chat Agent 或 Moon Phase Agent
+- [x] 21.4 實作 Moon Phase Agent subgraph — Node 1：以 `ephem` 計算當前月相（phase name、illumination %、days to next new/full moon）
+- [x] 21.5 實作 Moon Phase Agent subgraph — Node 2：LLM 生成東西方傳統詮釋（道家哲學 + 西方天文民俗）
+- [x] 21.6 確認 Moon Phase Agent 錯誤不影響 Supervisor 及 General Chat Agent
+- [x] 21.7 在 Langfuse trace 加入 `handled_by` 欄位，標記路由至哪個子 agent
+- [x] 21.8 端對端驗證：「今天月相是什麼？」→ Moon Phase Agent 回傳月相數據與東西方詮釋
