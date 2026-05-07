@@ -33,7 +33,7 @@ async def search_history(query: str) -> str:
 
 @tool
 async def retrieve_knowledge(query: str) -> str:
-    """在知識庫中搜尋與查詢語意相似的內容，回傳最多 5 個相關片段及相關文章清單。"""
+    """【優先使用】在知識庫中搜尋語意相似的內容。回答任何知識性問題前必須先呼叫此工具；只有在本工具回傳空結果時才改用 web_search。"""
     embedding = await embed_text(query, LLM_BASE_URL)
     conn = await asyncpg.connect(dsn=DATABASE_URL.replace("+asyncpg", ""))
     try:
